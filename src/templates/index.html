@@ -9,9 +9,27 @@
 <body>
 <div class="container">
   <header>
-    <h1>📖 小说分析工具</h1>
+    <div class="header-top">
+      <h1>📖 小说分析工具</h1>
+      <button class="btn-settings" id="btnSettings" title="设置 API Key">⚙️</button>
+    </div>
     <p class="subtitle">上传 txt / epub / docx，AI 自动提取世界观、人物弧光与情节脉络</p>
   </header>
+
+  <!-- API Key 设置面板 -->
+  <div class="settings-panel hidden" id="settingsPanel">
+    <div class="settings-card">
+      <label for="apiKeyInput">DeepSeek API Key</label>
+      <div class="key-input-row">
+        <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off">
+        <button class="btn btn-sm" id="btnToggleKey" title="显示/隐藏">👁️</button>
+      </div>
+      <div class="settings-actions">
+        <button class="btn btn-primary btn-small" id="btnSaveKey">保存</button>
+        <span class="key-status" id="keyStatus"></span>
+      </div>
+    </div>
+  </div>
 
   <!-- 上传区域 -->
   <section id="upload-section">

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from flask import Flask, render_template, request, jsonify, session
 
-from src.config import UPLOAD_DIR, OUTPUT_DIR
+from src.config import UPLOAD_DIR, OUTPUT_DIR, DEEPSEEK_BASE_URL
 from src.parser import parse
 from src.analyzer import NovelAnalyzer
 
@@ -75,6 +75,25 @@ def upload():
     })
 
 
+@app.route("/api/set-key", methods=["POST"])
+def set_key():
+    """设置 DeepSeek API Key"""
+    data = request.get_json(silent=True) or {}
+    api_key = (data.get("api_key") or "").strip()
+    if api_key:
+        session["ds_api_key"] = api_key
+        return jsonify({"success": True, "has_key": True})
+    else:
+        session.pop("ds_api_key", None)
+        return jsonify({"success": True, "has_key": False})
+
+
+@app.route("/api/has-key")
+def has_key():
+    """检查是否已设置 API Key"""
+    return jsonify({"has_key": bool(session.get("ds_api_key"))})
+
+
 @app.route("/analyze", methods=["POST"])
 def analyze():
     """对已上传的文件执行 AI 分析"""
@@ -91,7 +110,10 @@ def analyze():
 
     try:
         chapters = parse(str(saved_path))
-        analyzer = NovelAnalyzer()
+        api_key = session.get("ds_api_key")
+        if not api_key:
+            return jsonify({"error": "请先设置 DeepSeek API Key（点击页面右上角齿轮图标）"}), 400
+        analyzer = NovelAnalyzer(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
         results = analyzer.analyze(chapters, dimensions=dimensions)
         summary = analyzer.format_summary(results)
     except Exception as e:

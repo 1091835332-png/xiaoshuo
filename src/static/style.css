@@ -13,8 +13,46 @@ body {
 .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
 
 header { text-align: center; margin-bottom: 48px; }
-header h1 { font-size: 2.4em; font-weight: 700; color: #5b3a1e; margin-bottom: 8px; }
-header .subtitle { color: #8b7355; font-size: 1.05em; }
+.header-top { display: flex; align-items: center; justify-content: center; gap: 12px; }
+header h1 { font-size: 2.4em; font-weight: 700; color: #5b3a1e; margin-bottom: 0; }
+header .subtitle { color: #8b7355; font-size: 1.05em; margin-top: 8px; }
+
+.btn-settings {
+  background: none; border: 1px solid #d4c5a9; border-radius: 8px;
+  font-size: 1.3em; cursor: pointer; padding: 4px 8px; color: #8b7355;
+  transition: all 0.2s;
+}
+.btn-settings:hover { background: #fdf5e9; color: #5b3a1e; }
+
+/* ── API Key 设置面板 ── */
+.settings-panel {
+  margin-bottom: 24px;
+}
+.settings-card {
+  background: #fff; border: 1px solid #e0d5c1; border-radius: 12px;
+  padding: 18px 20px;
+}
+.settings-card label {
+  font-weight: 600; color: #5b3a1e; display: block; margin-bottom: 8px;
+  font-size: 0.92em;
+}
+.key-input-row {
+  display: flex; gap: 8px; margin-bottom: 12px;
+}
+.key-input-row input {
+  flex: 1; padding: 10px 14px; border: 1px solid #d4c5a9;
+  border-radius: 8px; font-size: 0.9em; font-family: monospace;
+  background: #fdfaf5; color: #2c2416;
+}
+.key-input-row input:focus { outline: none; border-color: #8b6914; }
+
+.settings-actions {
+  display: flex; align-items: center; gap: 12px;
+}
+.btn-small { width: auto; padding: 8px 24px; font-size: 0.9em; }
+.key-status { font-size: 0.88em; }
+.key-status.saved { color: #27ae60; }
+.key-status.cleared { color: #c4a97d; }
 
 /* ── 上传区 ── */
 .drop-zone {

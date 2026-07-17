@@ -7,6 +7,48 @@ const resultSection = document.getElementById('result-section');
 const loadingIndicator = document.getElementById('loading-indicator');
 const resultContent = document.getElementById('result-content');
 
+// ── API Key 设置 ──
+const btnSettings = document.getElementById('btnSettings');
+const settingsPanel = document.getElementById('settingsPanel');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const btnToggleKey = document.getElementById('btnToggleKey');
+const btnSaveKey = document.getElementById('btnSaveKey');
+const keyStatus = document.getElementById('keyStatus');
+
+btnSettings.addEventListener('click', () => {
+  settingsPanel.classList.toggle('hidden');
+});
+
+btnToggleKey.addEventListener('click', () => {
+  apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+});
+
+btnSaveKey.addEventListener('click', () => {
+  const key = apiKeyInput.value.trim();
+  fetch('/api/set-key', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ api_key: key })
+  }).then(r => r.json()).then(data => {
+    if (data.has_key) {
+      keyStatus.textContent = '✓ 已保存';
+      keyStatus.className = 'key-status saved';
+      apiKeyInput.value = '';
+    } else {
+      keyStatus.textContent = '✗ 已清除';
+      keyStatus.className = 'key-status cleared';
+    }
+  });
+});
+
+// 启动时检查是否已有 key
+fetch('/api/has-key').then(r => r.json()).then(data => {
+  if (data.has_key) {
+    keyStatus.textContent = '✓ 已设置';
+    keyStatus.className = 'key-status saved';
+  }
+});
+
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', e => {

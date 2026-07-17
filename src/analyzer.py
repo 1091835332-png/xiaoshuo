@@ -64,10 +64,10 @@ ANALYSIS_DIMENSIONS = {
 class NovelAnalyzer:
     """小说 AI 分析器"""
 
-    def __init__(self):
+    def __init__(self, api_key: str | None = None, base_url: str | None = None):
         self.client = OpenAI(
-            api_key=DEEPSEEK_API_KEY,
-            base_url=DEEPSEEK_BASE_URL,
+            api_key=api_key or DEEPSEEK_API_KEY,
+            base_url=base_url or DEEPSEEK_BASE_URL,
         )
 
     def _build_context(self, chapters: List[Chapter], max_chars: int = 16000) -> str:
