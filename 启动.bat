@@ -2,19 +2,20 @@
 chcp 65001 >nul
 cd /d "%~dp0"
 
-echo.
+:: 优先用打包好的 exe
+if exist "dist\NovelScope\NovelScope.exe" (
+    start "" "dist\NovelScope\NovelScope.exe"
+    exit
+)
+
 echo =====================================
-echo    📚 小说分析工具 — 启动中...
+echo   NovelScope - 开发模式启动
 echo =====================================
 echo.
 
-.venv\Scripts\python -m src.desktop 2>nul
+python -m src.desktop 2>nul
 if %errorlevel% neq 0 (
-    echo ❌ 依赖缺失，正在安装...
-    uv pip install flask python-dotenv openai beautifulsoup4 pywebview
-    echo.
-    echo 重新启动...
-    .venv\Scripts\python -m src.desktop
+    echo 运行失败。请检查依赖：pip install flask openai pywebview python-dotenv beautifulsoup4
 )
 
 pause

@@ -4,6 +4,7 @@
 """
 
 import json as _json
+import sys
 import uuid
 from pathlib import Path
 from typing import Generator
@@ -14,7 +15,17 @@ from src.config import UPLOAD_DIR, OUTPUT_DIR, DEEPSEEK_BASE_URL
 from src.parser import parse
 from src.analyzer import NovelAnalyzer
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
+# PyInstaller 打包后资源路径：_MEIPASS 是解压临时目录
+if getattr(sys, "frozen", False):
+    _ROOT = Path(sys._MEIPASS)
+else:
+    _ROOT = Path(__file__).resolve().parent.parent
+
+app = Flask(
+    __name__,
+    template_folder=str(_ROOT / "src" / "templates"),
+    static_folder=str(_ROOT / "src" / "static"),
+)
 app.secret_key = "novel-extractor-secret-key-change-in-production"
 
 UPLOAD_DIR_PATH = Path(UPLOAD_DIR)
