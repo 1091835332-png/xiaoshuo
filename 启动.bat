@@ -8,16 +8,13 @@ echo    📚 小说分析工具 — 启动中...
 echo =====================================
 echo.
 
-start http://127.0.0.1:5000
-
-.venv\Scripts\python -m src.app 2>nul
+.venv\Scripts\python -m src.desktop 2>nul
 if %errorlevel% neq 0 (
     echo ❌ 依赖缺失，正在安装...
-    uv pip install flask python-dotenv openai beautifulsoup4
+    uv pip install flask python-dotenv openai beautifulsoup4 pywebview
     echo.
     echo 重新启动...
-    start http://127.0.0.1:5000
-    .venv\Scripts\python -m src.app
+    .venv\Scripts\python -m src.desktop
 )
 
 pause

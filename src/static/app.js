@@ -6,6 +6,9 @@ const dimensionsPanel = document.getElementById('dimensions-panel');
 const resultSection = document.getElementById('result-section');
 const loadingIndicator = document.getElementById('loading-indicator');
 const resultContent = document.getElementById('result-content');
+const progressArea = document.getElementById('progress-area');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
 
 // ── API Key 设置 ──
 const btnSettings = document.getElementById('btnSettings');
@@ -90,25 +93,66 @@ function resetFile() {
 async function startAnalyze() {
   const checked = Array.from(document.querySelectorAll('.dim-check input:checked')).map(cb => cb.value);
   if (!checked.length) { alert('请至少选择一个分析维度'); return; }
-  document.getElementById('analyze-btn').disabled = true;
+
+  const analyzeBtn = document.getElementById('analyze-btn');
+  analyzeBtn.disabled = true;
   resultSection.classList.remove('hidden');
-  loadingIndicator.classList.remove('hidden');
   resultContent.innerHTML = '';
+
+  // 显示进度条
+  progressArea.classList.remove('hidden');
+  progressBar.style.width = '0%';
+  progressText.textContent = '正在准备...';
+
   try {
-    const resp = await fetch('/analyze', {
+    const resp = await fetch('/analyze-stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ dimensions: checked })
     });
-    const data = await resp.json();
-    if (data.error) { alert(data.error); return; }
-    loadingIndicator.classList.add('hidden');
-    renderResults(data.results);
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error || '请求失败');
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = JSON.parse(line.slice(6));
+          // 更新进度
+          const pct = Math.round((data.done / data.total) * 100);
+          progressBar.style.width = pct + '%';
+          progressText.textContent = '正在分析：' + data.label + '（' + data.done + '/' + data.total + '）';
+
+          // 追加结果卡片
+          resultContent.innerHTML +=
+            '<div class="result-card fade-in"><h2>' + data.label +
+            '</h2><div class="markdown-body">' + markdownToHtml(data.content) + '</div></div>';
+        }
+      }
+    }
+
+    progressText.textContent = '✓ 分析完成';
+    progressBar.style.width = '100%';
+    setTimeout(() => { progressArea.classList.add('hidden'); }, 2000);
+
   } catch (err) {
-    loadingIndicator.classList.add('hidden');
-    resultContent.innerHTML = '<p class="error">分析失败: ' + err.message + '</p>';
+    progressArea.classList.add('hidden');
+    resultContent.innerHTML += '<p class="error">分析失败: ' + err.message + '</p>';
   } finally {
-    document.getElementById('analyze-btn').disabled = false;
+    analyzeBtn.disabled = false;
   }
 }
 

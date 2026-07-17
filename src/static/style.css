@@ -129,18 +129,25 @@ header .subtitle { color: #8b7355; font-size: 1.05em; margin-top: 8px; }
 .btn:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* ── 进度 ── */
-.progress {
-  display: flex; flex-direction: column; align-items: center; gap: 14px;
-  margin-top: 28px; padding: 32px;
+/* ── 进度条 ── */
+.progress-bar-wrap {
+  width: 100%; height: 6px; background: #e8ddd0;
+  border-radius: 3px; margin-bottom: 10px; overflow: hidden;
 }
-.spinner {
-  width: 40px; height: 40px;
-  border: 3px solid #e0d5c1; border-top-color: #8b6914;
-  border-radius: 50%; animation: spin 0.8s linear infinite;
+.progress-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #8b6914, #c4a346);
+  border-radius: 3px; transition: width 0.4s ease;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
-.progress span { color: #8b7355; font-size: 0.95em; }
+.progress-text {
+  font-size: 0.9em; color: #8b7355; text-align: center; margin-bottom: 20px;
+}
+
+/* ── 淡入动画 ── */
+.fade-in {
+  animation: fadeIn 0.5s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 .error-msg {
   margin-top: 16px; padding: 12px 16px;

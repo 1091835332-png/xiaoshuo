@@ -3,10 +3,12 @@
 上传 txt/epub/docx → 解析文本 → AI 分析 → 展示结果
 """
 
+import json as _json
 import uuid
 from pathlib import Path
+from typing import Generator
 
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, Response
 
 from src.config import UPLOAD_DIR, OUTPUT_DIR, DEEPSEEK_BASE_URL
 from src.parser import parse
@@ -124,6 +126,41 @@ def analyze():
         "results": results,
         "summary": summary,
     })
+
+
+@app.route("/analyze-stream", methods=["POST"])
+def analyze_stream():
+    """SSE 流式分析：逐维度推送结果，前端实时展示进度"""
+    saved_name = session.get("saved_file")
+    if not saved_name:
+        return jsonify({"error": "请先上传文件"}), 400
+
+    saved_path = UPLOAD_DIR_PATH / saved_name
+    if not saved_path.exists():
+        return jsonify({"error": "文件已过期，请重新上传"}), 400
+
+    api_key = session.get("ds_api_key")
+    if not api_key:
+        return jsonify({"error": "请先设置 DeepSeek API Key"}), 400
+
+    data = request.get_json(silent=True) or {}
+    dimensions = data.get("dimensions", ["worldview", "characters", "plot", "themes"])
+
+    chapters = parse(str(saved_path))
+    analyzer = NovelAnalyzer(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
+
+    def generate() -> Generator[str, None, None]:
+        for dim, label, content, done, total in analyzer.analyze_stream(chapters, dimensions):
+            event = _json.dumps({
+                "dim": dim,
+                "label": label,
+                "content": content,
+                "done": done,
+                "total": total,
+            }, ensure_ascii=False)
+            yield f"data: {event}\n\n"
+
+    return Response(generate(), mimetype="text/event-stream")
 
 
 @app.route("/api/health")

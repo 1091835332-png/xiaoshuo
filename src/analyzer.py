@@ -106,7 +106,7 @@ class NovelAnalyzer:
         self, chapters: List[Chapter], dimensions: List[str] | None = None
     ) -> dict:
         """
-        对小说进行多维度分析。
+        对小说进行多维度分析（一次性返回所有结果）。
 
         Args:
             chapters: 章节列表
@@ -146,6 +146,53 @@ class NovelAnalyzer:
                 results[dim] = f"[分析失败: {str(e)}]"
 
         return results
+
+    def analyze_stream(
+        self, chapters: List[Chapter], dimensions: List[str] | None = None
+    ):
+        """
+        逐维度流式分析，每完成一个维度 yield (dim_key, label, content)。
+
+        Args:
+            chapters: 章节列表
+            dimensions: 要分析的维度，默认全部
+
+        Yields:
+            (dim_key, label, content) 元组
+        """
+        if dimensions is None:
+            dimensions = list(ANALYSIS_DIMENSIONS.keys())
+
+        context = self._build_context(chapters)
+        total = len([d for d in dimensions if d in ANALYSIS_DIMENSIONS])
+        done = 0
+
+        for dim in dimensions:
+            if dim not in ANALYSIS_DIMENSIONS:
+                continue
+            cfg = ANALYSIS_DIMENSIONS[dim]
+            try:
+                resp = self.client.chat.completions.create(
+                    model="deepseek-chat",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "你是一位专业的文学评论家，擅长分析小说的结构、人物和主题。请基于提供的文本内容进行分析，不要编造文中不存在的信息。",
+                        },
+                        {
+                            "role": "user",
+                            "content": f"{cfg['prompt']}\n\n--- 小说文本 ---\n\n{context}",
+                        },
+                    ],
+                    temperature=0.3,
+                    max_tokens=4096,
+                )
+                content = resp.choices[0].message.content or ""
+            except Exception as e:
+                content = f"[分析失败: {str(e)}]"
+
+            done += 1
+            yield dim, cfg['label'], content, done, total
 
     def format_summary(self, results: dict) -> str:
         """将分析结果格式化为可读的摘要文本"""
