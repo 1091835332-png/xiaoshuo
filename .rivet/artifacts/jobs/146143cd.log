@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "E:\XIAOSHUO\src\app.py", line 11, in <module>
+    from src.config import UPLOAD_DIR, OUTPUT_DIR
+ModuleNotFoundError: No module named 'src'

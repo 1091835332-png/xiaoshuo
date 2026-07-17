@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小说分析工具</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📖 小说分析工具</h1>
+    <p class="subtitle">上传 txt / epub / docx，AI 自动提取世界观、人物弧光与情节脉络</p>
+  </header>
+
+  <!-- 上传区域 -->
+  <section id="upload-section">
+    <div class="drop-zone" id="drop-zone">
+      <div class="drop-zone-content">
+        <span class="drop-icon">📂</span>
+        <p>拖拽小说文件到这里，或点击选择</p>
+        <p class="hint">支持 .txt .epub .docx</p>
+        <input type="file" id="file-input" accept=".txt,.epub,.docx" hidden>
+        <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">选择文件</button>
+      </div>
+    </div>
+
+    <div id="file-info" class="hidden">
+      <div class="file-card">
+        <span class="file-icon">📄</span>
+        <div class="file-detail">
+          <span id="file-name"></span>
+          <span id="file-meta"></span>
+        </div>
+        <button class="btn btn-sm" onclick="resetFile()">✕</button>
+      </div>
+    </div>
+
+    <!-- 分析维度选择 -->
+    <div id="dimensions-panel" class="hidden">
+      <h3>选择分析维度</h3>
+      <div class="dimension-grid">
+        <label class="dim-check"><input type="checkbox" value="worldview" checked> 世界观</label>
+        <label class="dim-check"><input type="checkbox" value="characters" checked> 人物性格转变</label>
+        <label class="dim-check"><input type="checkbox" value="plot" checked> 关键情节</label>
+        <label class="dim-check"><input type="checkbox" value="themes" checked> 主题思想</label>
+      </div>
+      <button class="btn btn-primary" id="analyze-btn" onclick="startAnalyze()">🔍 开始分析</button>
+    </div>
+  </section>
+
+  <!-- 结果区域 -->
+  <section id="result-section" class="hidden">
+    <div id="loading-indicator" class="hidden">
+      <div class="spinner"></div>
+      <p>AI 正在分析中，请耐心等待…</p>
+    </div>
+    <div id="result-content"></div>
+  </section>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小说分析工具</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📖 小说分析工具</h1>
+    <p class="subtitle">上传 txt / epub / docx，AI 自动提取世界观、人物弧光与情节脉络</p>
+  </header>
+
+  <!-- 上传区域 -->
+  <section id="upload-section">
+    <div class="drop-zone" id="drop-zone">
+      <div class="drop-zone-content">
+        <span class="drop-icon">📂</span>
+        <p>拖拽小说文件到这里，或点击选择</p>
+        <p class="hint">支持 .txt .epub .docx</p>
+        <input type="file" id="file-input" accept=".txt,.epub,.docx" hidden>
+        <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">选择文件</button>
+      </div>
+    </div>
+
+    <div id="file-info" class="hidden">
+      <div class="file-card">
+        <span class="file-icon">📄</span>
+        <div class="file-detail">
+          <span id="file-name"></span>
+          <span id="file-meta"></span>
+        </div>
+        <button class="btn btn-sm" onclick="resetFile()">✕</button>
+      </div>
+    </div>
+
+    <!-- 分析维度选择 -->
+    <div id="dimensions-panel" class="hidden">
+      <h3>选择分析维度</h3>
+      <div class="dimension-grid">
+        <label class="dim-check"><input type="checkbox" value="worldview" checked> 世界观</label>
+        <label class="dim-check"><input type="checkbox" value="characters" checked> 人物性格转变</label>
+        <label class="dim-check"><input type="checkbox" value="plot" checked> 关键情节</label>
+        <label class="dim-check"><input type="checkbox" value="themes" checked> 主题思想</label>
+      </div>
+      <button class="btn btn-primary" id="analyze-btn" onclick="startAnalyze()">🔍 开始分析</button>
+    </div>
+  </section>
+
+  <!-- 结果区域 -->
+  <section id="result-section" class="hidden">
+    <div id="loading-indicator" class="hidden">
+      <div class="spinner"></div>
+      <p>AI 正在分析中，请耐心等待…</p>
+    </div>
+    <div id="result-content"></div>
+  </section>
+</div>
+
+<script>
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const fileInfo = document.getElementById('file-info');
+const dimensionsPanel = document.getElementById('dimensions-panel');
+const resultSection = document.getElementById('result-section');
+const loadingIndicator = document.getElementById('loading-indicator');
+const resultContent = document.getElementById('result-content');
+
+// 拖拽事件
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) uploadFile(fileInput.files[0]);
+});
+
+async function uploadFile(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const resp = await fetch('/upload', { method: 'POST', body: formData });
+    const data = await resp.json();
+    if (data.error) { alert(data.error); return; }
+
+    document.getElementById('file-name').textContent = data.filename;
+    document.getElementById('file-meta').textContent =
+      `${data.chapter_count} 章 · ${data.total_chars.toLocaleString()} 字`;
+    dropZone.classList.add('hidden');
+    fileInfo.classList.remove('hidden');
+    dimensionsPanel.classList.remove('hidden');
+    resultSection.classList.add('hidden');
+  } catch (err) {
+    alert('上传失败: ' + err.message);
+  }
+}
+
+function resetFile() {
+  dropZone.classList.remove('hidden');
+  fileInfo.classList.add('hidden');
+  dimensionsPanel.classList.add('hidden');
+  resultSection.classList.add('hidden');
+  fileInput.value = '';
+}
+
+async function startAnalyze() {
+  const checked = [...document.querySelectorAll('.dim-check input:checked')].map(cb => cb.value);
+  if (!checked.length) { alert('请至少选择一个分析维度'); return; }
+
+  dimensionsPanel.querySelector('#analyze-btn').disabled = true;
+  resultSection.classList.remove('hidden');
+  loadingIndicator.classList.remove('hidden');
+  resultContent.innerHTML = '';
+
+  try {
+    const resp = await fetch('/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dimensions: checked })
+    });
+    const data = await resp.json();
+    if (data.error) { alert(data.error); return; }
+
+    loadingIndicator.classList.add('hidden');
+    renderResults(data.results);
+  } catch (err) {
+    loadingIndicator.classList.add('hidden');
+    resultContent.innerHTML = `<p class="error">分析失败: ${err.message}</p>`;
+  } finally {
+    dimensionsPanel.querySelector('#analyze-btn').disabled = false;
+  }
+}
+
+const DIM_LABELS = { worldview:'世界观', characters:'人物性格转变', plot:'关键情节', themes:'主题思想' };
+
+function renderResults(results) {
+  let html = '';
+  for (const [key, text] of Object.entries(results)) {
+    const label = DIM_LABELS[key] || key;
+    html += `<div class="result-card">
+      <h2>${label}</h2>
+      <div class="markdown-body">${markdownToHtml(text)}</div>
+    </div>`;
+  }
+  resultContent.innerHTML = html;
+}
+
+// 简易 Markdown 渲染
+function markdownToHtml(text) {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/^### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>')
+    .replace(/^/, '<p>').replace(/$/, '</p>');
+}
+</script>
+</body>
+</html>

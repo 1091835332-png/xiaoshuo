@@ -1,0 +1,47 @@
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+Press CTRL+C to quit
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 123-804-986
+127.0.0.1 - - [17/Jul/2026 18:51:17] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [17/Jul/2026 18:51:20] "GET /static/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [17/Jul/2026 18:51:20] "GET /static/app.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Jul/2026 18:51:20] "GET /api/health HTTP/1.1" 200 -
+127.0.0.1 - - [17/Jul/2026 18:51:41] "POST /upload HTTP/1.1" 200 -
+127.0.0.1 - - [17/Jul/2026 18:51:48] "POST /analyze HTTP/1.1" 400 -
+127.0.0.1 - - [17/Jul/2026 18:51:52] "POST /upload HTTP/1.1" 200 -
+127.0.0.1 - - [17/Jul/2026 18:51:52] "POST /analyze HTTP/1.1" 500 -
+Traceback (most recent call last):
+  File "E:\XIAOSHUO\.venv\Lib\site-packages\flask\app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\XIAOSHUO\.venv\Lib\site-packages\flask\app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "E:\XIAOSHUO\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "E:\XIAOSHUO\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "E:\XIAOSHUO\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "E:\XIAOSHUO\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "E:\XIAOSHUO\src\app.py", line 97, in analyze
+    analyzer = NovelAnalyzer()
+  File "E:\XIAOSHUO\src\analyzer.py", line 68, in __init__
+    self.client = OpenAI(
+    
+  File "E:\XIAOSHUO\.venv\Lib\site-packages\openai\_client.py", line 230, in __init__
+    raise OpenAIError(
+    ^
+openai.OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+ * Detected change in 'E:\\XIAOSHUO\\src\\app.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 123-804-986
+127.0.0.1 - - [17/Jul/2026 18:52:04] "POST /upload HTTP/1.1" 200 -
+127.0.0.1 - - [17/Jul/2026 18:52:04] "POST /analyze HTTP/1.1" 500 -
+127.0.0.1 - - [17/Jul/2026 18:52:40] "GET /api/health HTTP/1.1" 200 -

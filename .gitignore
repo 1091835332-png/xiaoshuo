@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Uploads & outputs
+uploads/
+output/
+chroma_data/
+
+# Env
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Rivet internals
+.rivet/artifacts/
+.rivet/backups/
+.rivet/meridian.db*
