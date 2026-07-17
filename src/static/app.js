@@ -10,7 +10,6 @@ var resultContent = $('resultContent');
 var progressArea = $('progress-area');
 var progressBar = $('progressBar');
 var progressLabel = $('progressLabel');
-var progressPct = $('progressPct');
 
 // ── API Key ──
 var btnSettings = $('btnSettings');
@@ -72,6 +71,7 @@ function resetFile(){
   fileInfo.style.display = 'none';
   dimPanel.style.display = 'none';
   resultSec.style.display = 'none';
+  $('main-empty').style.display = '';
   fileInput.value = '';
 }
 
@@ -82,11 +82,11 @@ function startAnalyze(){
 
   var btn = $('analyze-btn'); btn.disabled = true;
   resultSec.style.display = 'block';
+  $('main-empty').style.display = 'none';
   resultContent.innerHTML = '';
   progressArea.style.display = 'block';
   progressBar.style.width = '0%';
   progressLabel.textContent = '\u6b63\u5728\u51c6\u5907\u2026';
-  progressPct.textContent = '0%';
 
   fetch('/analyze-stream', {
     method: 'POST',
@@ -103,7 +103,6 @@ function startAnalyze(){
         var done = _a.done, value = _a.value;
         if (done) {
           progressLabel.textContent = '\u2713 \u5206\u6790\u5b8c\u6210';
-          progressPct.textContent = '100%';
           progressBar.style.width = '100%';
           setTimeout(function(){ progressArea.style.display = 'none'; }, 2000);
           btn.disabled = false;
@@ -118,10 +117,9 @@ function startAnalyze(){
             var pct = Math.round(d.done / d.total * 100);
             progressBar.style.width = pct + '%';
             progressLabel.textContent = '\u6b63\u5728\u5206\u6790\uff1a' + d.label;
-            progressPct.textContent = pct + '% (' + d.done + '/' + d.total + ')';
-            resultContent.innerHTML += '<div class="result-card fade-in"><div class="result-card-header"><span class="result-card-icon">' +
+            resultContent.innerHTML += '<div class="result-card"><div class="result-card-head"><span class="result-card-icon">' +
               {worldview:'\ud83c\udf0d',characters:'\ud83d\udc64',plot:'\ud83d\udcc8',themes:'\ud83d\udca1'}[d.dim] +
-              '</span><h2>' + d.label + '</h2></div><div class="markdown-body">' + md(d.content) + '</div></div>';
+              '</span><h2>' + d.label + '</h2></div><div class="result-card-body">' + md(d.content) + '</div></div>';
           }
         });
         return pump();
