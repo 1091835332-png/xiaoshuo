@@ -3,81 +3,85 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>小说分析工具</title>
+<title>NovelScope · 小说分析</title>
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<div class="container">
-  <header>
-    <div class="header-top">
-      <h1>📖 小说分析工具</h1>
-      <button class="btn-settings" id="btnSettings" title="设置 API Key">⚙️</button>
-    </div>
-    <p class="subtitle">上传 txt / epub / docx，AI 自动提取世界观、人物弧光与情节脉络</p>
-  </header>
-
-  <!-- API Key 设置面板 -->
-  <div class="settings-panel hidden" id="settingsPanel">
-    <div class="settings-card">
-      <label for="apiKeyInput">DeepSeek API Key</label>
-      <div class="key-input-row">
-        <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off">
-        <button class="btn btn-sm" id="btnToggleKey" title="显示/隐藏">👁️</button>
-      </div>
-      <div class="settings-actions">
-        <button class="btn btn-primary btn-small" id="btnSaveKey">保存</button>
-        <span class="key-status" id="keyStatus"></span>
-      </div>
+<!-- 顶部导航 -->
+<nav class="topbar">
+  <div class="topbar-inner">
+    <span class="logo">📖 NovelScope</span>
+    <div class="topbar-actions">
+      <button class="topbar-btn" id="btnSettings" title="API Key">⚙️ 设置</button>
     </div>
   </div>
+</nav>
 
-  <!-- 上传区域 -->
-  <section id="upload-section">
-    <div class="drop-zone" id="drop-zone">
-      <div class="drop-zone-content">
-        <span class="drop-icon">📂</span>
-        <p>拖拽小说文件到这里，或点击选择</p>
-        <p class="hint">支持 .txt .epub .docx</p>
-        <input type="file" id="file-input" accept=".txt,.epub,.docx" hidden>
-        <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">选择文件</button>
-      </div>
+<!-- API Key 面板 -->
+<div class="key-panel" id="settingsPanel" style="display:none">
+  <div class="key-panel-card">
+    <h3>🔑 DeepSeek API Key</h3>
+    <div class="key-row">
+      <input type="password" id="apiKeyInput" placeholder="sk-...">
+      <button class="icon-btn" id="btnToggleKey">👁</button>
+      <button class="btn-accent" id="btnSaveKey">保存</button>
     </div>
-
-    <div id="file-info" class="hidden">
-      <div class="file-card">
-        <span class="file-icon">📄</span>
-        <div class="file-detail">
-          <span id="file-name"></span>
-          <span id="file-meta"></span>
-        </div>
-        <button class="btn btn-sm" onclick="resetFile()">✕</button>
-      </div>
-    </div>
-
-    <!-- 分析维度选择 -->
-    <div id="dimensions-panel" class="hidden">
-      <h3>选择分析维度</h3>
-      <div class="dimension-grid">
-        <label class="dim-check"><input type="checkbox" value="worldview" checked> 世界观</label>
-        <label class="dim-check"><input type="checkbox" value="characters" checked> 人物性格转变</label>
-        <label class="dim-check"><input type="checkbox" value="plot" checked> 关键情节</label>
-        <label class="dim-check"><input type="checkbox" value="themes" checked> 主题思想</label>
-      </div>
-      <button class="btn btn-primary" id="analyze-btn" onclick="startAnalyze()">🔍 开始分析</button>
-    </div>
-  </section>
-
-  <!-- 结果区域 -->
-  <section id="result-section" class="hidden">
-    <div id="progress-area" class="hidden">
-      <div class="progress-bar-wrap">
-        <div class="progress-bar" id="progressBar"></div>
-      </div>
-      <p class="progress-text" id="progressText">准备分析...</p>
-    </div>
-    <div id="result-content"></div>
-  </section>
+    <span class="key-badge" id="keyStatus"></span>
+  </div>
 </div>
+
+<!-- 主区域 -->
+<main class="main-grid">
+  <!-- 左栏：上传 + 设置 -->
+  <aside class="sidebar">
+    <!-- 拖拽区 -->
+    <div class="drop-card" id="drop-zone">
+      <div class="drop-visual">
+        <div class="drop-ring">
+          <span class="drop-icon-lg">📂</span>
+        </div>
+      </div>
+      <p class="drop-title">拖拽小说文件到此处</p>
+      <p class="drop-hint">或点击下方按钮选择文件</p>
+      <button class="btn-outline" onclick="document.getElementById('file-input').click()">选择文件</button>
+      <input type="file" id="file-input" accept=".txt,.epub,.docx" hidden>
+    </div>
+
+    <!-- 文件信息 -->
+    <div id="file-info" class="file-tag" style="display:none">
+      <span class="file-tag-icon">📄</span>
+      <span id="file-name"></span>
+      <span class="file-tag-meta" id="file-meta"></span>
+      <button class="file-tag-close" onclick="resetFile()">×</button>
+    </div>
+
+    <!-- 维度选择 -->
+    <div id="dimensions-panel" style="display:none">
+      <h3 class="section-label">分析维度</h3>
+      <div class="dim-chips">
+        <label class="dim-chip"><input type="checkbox" value="worldview" checked><span>🌍 世界观</span></label>
+        <label class="dim-chip"><input type="checkbox" value="characters" checked><span>👤 人物转变</span></label>
+        <label class="dim-chip"><input type="checkbox" value="plot" checked><span>📈 关键情节</span></label>
+        <label class="dim-chip"><input type="checkbox" value="themes" checked><span>💡 主题思想</span></label>
+      </div>
+      <button class="btn-primary" id="analyze-btn" onclick="startAnalyze()">⚡ 开始分析</button>
+    </div>
+  </aside>
+
+  <!-- 右栏：结果 -->
+  <section class="result-panel" id="result-section" style="display:none">
+    <div class="progress-section" id="progress-area" style="display:none">
+      <div class="progress-header">
+        <span class="progress-label" id="progressLabel">正在准备…</span>
+        <span class="progress-pct" id="progressPct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressBar"></div>
+      </div>
+    </div>
+    <div class="result-cards" id="resultContent"></div>
+  </section>
+</main>
 
 <script src="/static/app.js"></script>
 </body>
