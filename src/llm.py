@@ -5,6 +5,7 @@
 DeepSeek API 与 OpenAI 完全兼容。
 """
 import json
+import time
 import httpx
 from typing import List, Dict, Optional
 
@@ -47,30 +48,45 @@ class LLMClient:
     def __init__(self, api_key: str, base_url: str = "https://api.deepseek.com"):
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
-        self._client = httpx.Client(timeout=120.0)
+        self._client = httpx.Client(timeout=httpx.Timeout(90.0, connect=15.0))
         self.chat = _Chat(self)
 
     def chat(self, messages: List[Dict[str, str]], *,
              model: str = "deepseek-chat",
              temperature: float = 0.3,
              max_tokens: int = 4096) -> str:
-        """发送聊天请求，返回文本内容"""
-        resp = self._client.post(
-            f"{self.base_url}/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": model,
-                "messages": messages,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-            },
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        return data["choices"][0]["message"]["content"]
+        """发送聊天请求，返回文本内容。失败自动重试一次。"""
+        last_err = ""
+        for attempt in range(2):
+            try:
+                resp = self._client.post(
+                    f"{self.base_url}/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": model,
+                        "messages": messages,
+                        "temperature": temperature,
+                        "max_tokens": max_tokens,
+                    },
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                return data["choices"][0]["message"]["content"]
+            except httpx.HTTPStatusError as e:
+                last_err = f"API {e.response.status_code}: {e.response.text[:200]}"
+                if e.response.status_code == 429:
+                    time.sleep(2 * (attempt + 1))
+                    continue
+                break
+            except Exception as e:
+                last_err = f"网络错误: {e}"
+                if attempt == 0:
+                    time.sleep(1.5)
+                    continue
+        return f"[AI调用失败: {last_err}]"
 
     def close(self):
         self._client.close()
