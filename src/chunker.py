@@ -57,8 +57,8 @@ class SmartChunker:
 
     def __init__(
         self,
-        chapters_per_block: int = 5,          # 每块章数
-        max_chars_per_block: int = 15000,      # 每块字数上限
+        chapters_per_block: int = 35,         # 每块章数
+        max_chars_per_block: int = 50000,      # 每块字数上限
         overlap_chars: int = 200,              # 块间重叠字数
         detect_volumes: bool = True,           # 是否检测卷结构
     ):

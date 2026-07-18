@@ -79,9 +79,9 @@ class ExtractionPipeline:
 
         for i, block in enumerate(blocks):
             base_pct = 0.15 + (i / block_count) * 0.55
-            label = f"分析第{block.chapter_start}-{block.chapter_end}章... ({i+1}/{block_count})"
+            label = f"分析第{block.chapter_start + 1}-{block.chapter_end + 1}章... ({i+1}/{block_count})"
             yield {"stage": "meso", "label": label, "progress_pct": base_pct,
-                   "data": {"block_index": i, "chapters": f"{block.chapter_start}-{block.chapter_end}"}}
+                   "data": {"block_index": i, "chapters": f"{block.chapter_start + 1}-{block.chapter_end + 1}"}}
 
             def task_callback(task_id: str, count: int):
                 yield {"stage": "meso_task", "label": f"  {task_id}: {count}条",
