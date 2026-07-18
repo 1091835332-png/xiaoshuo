@@ -60,9 +60,8 @@ class MesoAnalyzer:
     def analyze_block(self, block: SmartBlock, block_index: int,
                       on_task_done: Callable = None) -> MesoResult:
         result = MesoResult(block_index=block_index)
-        checklist = self.lexicon.format_checklist(block.text[:3000])
-        titles = " > ".join(ch.title for ch in block.chapters)
-        header = f"[第{block.start_idx}-{block.end_idx}章] {titles}"
+        checklist = self.lexicon.format_checklist(block.content[:3000])
+        header = f"[{block.title}]"
 
         tasks = [
             ("plot", MESO_PROMPTS["plot"], "plot_events"),
@@ -73,7 +72,7 @@ class MesoAnalyzer:
 
         for task_id, prompt, attr in tasks:
             try:
-                user_msg = f"{prompt}\n\n{checklist}\n\n{header}\n\n--- 文本 ---\n\n{block.text}"
+                user_msg = f"{prompt}\n\n{checklist}\n\n{header}\n\n--- 文本 ---\n\n{block.content}"
                 resp = self.client.chat.completions.create(
                     model="deepseek-chat",
                     messages=[
