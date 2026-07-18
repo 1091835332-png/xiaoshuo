@@ -371,9 +371,19 @@ body {
   box-shadow: 0 0 0 3px rgba(16,163,127,0.12);
 }
 
-.key-actions {
-  display: flex;
-  gap: 6px;
+.key-label {
+  font-size: 0.72em;
+  color: var(--sidebar-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.key-row {
+  display: flex; gap: 6px;
+}
+
+.key-row input {
+  flex: 1;
 }
 
 .key-btn {
@@ -390,9 +400,14 @@ body {
 .key-btn:hover { background: var(--sidebar-bg); color: var(--sidebar-text); }
 
 .key-btn-save {
+  display: block; width: 100%; margin-top: 10px;
+  padding: 8px;
   background: var(--accent);
-  border-color: var(--accent);
+  border: none; border-radius: 6px;
   color: #fff;
+  font-size: 0.84em; font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
 }
 
 .key-btn-save:hover { background: var(--accent-hover); }

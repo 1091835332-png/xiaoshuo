@@ -16,6 +16,7 @@ var btnSettings = $('btnSettings');
 var settingsPanel = $('settingsPanel');
 var apiKeyInput = $('apiKeyInput');
 var keyStatus = $('keyStatus');
+var apiUrlInput = $('apiUrlInput');
 
 btnSettings.addEventListener('click', function(){
   settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
@@ -27,19 +28,21 @@ $('btnToggleKey').addEventListener('click', function(){
 
 $('btnSaveKey').addEventListener('click', function(){
   var key = apiKeyInput.value.trim();
+  var url = apiUrlInput.value.trim() || 'https://api.deepseek.com';
   fetch('/api/set-key', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({api_key: key})
+    body: JSON.stringify({api_key: key, base_url: url})
   }).then(function(r){ return r.json(); }).then(function(d){
     keyStatus.textContent = d.has_key ? '\u2713 已保存' : '\u2717 已清除';
     keyStatus.className = 'key-badge ' + (d.has_key ? 'saved' : '');
-    apiKeyInput.value = '';
+    if (!d.has_key) apiKeyInput.value = '';
   });
 });
 
 fetch('/api/has-key').then(function(r){ return r.json(); }).then(function(d){
   if (d.has_key) { keyStatus.textContent = '\u2713 已设置'; keyStatus.className = 'key-badge saved'; }
+  if (d.base_url) { apiUrlInput.value = d.base_url; }
 });
 
 // ── 上传 ──

@@ -100,44 +100,67 @@ def _read_env_key() -> str:
                 return line.split("=", 1)[1].strip().strip('"').strip("'")
     return ""
 
-def _write_env_key(api_key: str):
-    """写入 API Key 到 .env 文件"""
-    lines = []
-    found = False
+def _read_env_base_url() -> str:
+    """从 .env 文件读取 Base URL"""
     if _ENV_PATH.exists():
         for line in _ENV_PATH.read_text(encoding="utf-8").splitlines():
-            if line.strip().startswith("DEEPSEEK_API_KEY="):
+            line = line.strip()
+            if line.startswith("DEEPSEEK_BASE_URL="):
+                return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return "https://api.deepseek.com"
+
+def _write_env_config(api_key: str, base_url: str):
+    """写入 API Key 和 Base URL 到 .env 文件"""
+    lines = []
+    found_key = False
+    found_url = False
+    if _ENV_PATH.exists():
+        for line in _ENV_PATH.read_text(encoding="utf-8").splitlines():
+            s = line.strip()
+            if s.startswith("DEEPSEEK_API_KEY="):
                 lines.append(f'DEEPSEEK_API_KEY={api_key}')
-                found = True
-            else:
+                found_key = True
+            elif s.startswith("DEEPSEEK_BASE_URL="):
+                lines.append(f'DEEPSEEK_BASE_URL={base_url}')
+                found_url = True
+            elif s:
                 lines.append(line)
-    if not found:
+    if not found_key and api_key:
         lines.append(f'DEEPSEEK_API_KEY={api_key}')
+    if not found_url:
+        lines.append(f'DEEPSEEK_BASE_URL={base_url}')
     _ENV_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 @app.route("/api/set-key", methods=["POST"])
 def set_key():
-    """设置 DeepSeek API Key — 持久化到 .env 文件"""
+    """设置 API Key + Base URL — 持久化到 .env 文件"""
     data = request.get_json(silent=True) or {}
     api_key = (data.get("api_key") or "").strip()
+    base_url = (data.get("base_url") or "https://api.deepseek.com").strip()
     if api_key:
-        _write_env_key(api_key)
+        _write_env_config(api_key, base_url)
         session["ds_api_key"] = api_key
-        return jsonify({"success": True, "has_key": True, "persisted": True})
+        session["ds_base_url"] = base_url
+        return jsonify({"success": True, "has_key": True, "base_url": base_url})
     else:
         session.pop("ds_api_key", None)
+        session.pop("ds_base_url", None)
         return jsonify({"success": True, "has_key": False})
 
 
 @app.route("/api/has-key")
 def has_key():
-    """检查是否已设置 API Key — 优先 .env，其次 session"""
+    """检查设置 — 优先 .env，其次 session"""
     env_key = _read_env_key()
+    env_url = _read_env_base_url()
     if env_key:
-        session["ds_api_key"] = env_key  # 同步到 session
-        return jsonify({"has_key": True, "source": "env"})
-    return jsonify({"has_key": bool(session.get("ds_api_key")), "source": "session"})
+        session["ds_api_key"] = env_key
+        session["ds_base_url"] = env_url
+        return jsonify({"has_key": True, "base_url": env_url})
+    sk = session.get("ds_api_key")
+    su = session.get("ds_base_url", "https://api.deepseek.com")
+    return jsonify({"has_key": bool(sk), "base_url": su})
 
 
 @app.route("/analyze", methods=["POST"])
@@ -159,7 +182,8 @@ def analyze():
         api_key = session.get("ds_api_key") or _read_env_key()
         if not api_key:
             return jsonify({"error": "请先设置 DeepSeek API Key（点击页面右上角齿轮图标）"}), 400
-        analyzer = NovelAnalyzer(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
+        api_url = session.get("ds_base_url") or _read_env_base_url()
+        analyzer = NovelAnalyzer(api_key=api_key, base_url=api_url)
         results = analyzer.analyze(chapters, dimensions=dimensions)
         summary = analyzer.format_summary(results)
     except Exception as e:
@@ -191,7 +215,8 @@ def analyze_stream():
     dimensions = data.get("dimensions", ["worldview", "characters", "plot", "themes"])
 
     chapters = parse(str(saved_path))
-    analyzer = NovelAnalyzer(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
+    api_url = session.get("ds_base_url") or _read_env_base_url()
+    analyzer = NovelAnalyzer(api_key=api_key, base_url=api_url)
 
     def generate() -> Generator[str, None, None]:
         for dim, label, content, done, total in analyzer.analyze_stream(chapters, dimensions):
@@ -231,7 +256,8 @@ def analyze_stream_v2():
     granularity = data.get("granularity", "detailed")
 
     chapters = parse(str(saved_path))
-    pipeline = ExtractionPipeline(api_key=api_key)
+    api_url = session.get("ds_base_url") or _read_env_base_url()
+    pipeline = ExtractionPipeline(api_key=api_key, base_url=api_url)
 
     def generate() -> Generator[str, None, None]:
         for ev in pipeline.run(chapters, granularity=granularity):
