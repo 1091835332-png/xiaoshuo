@@ -5,7 +5,7 @@ requires-python = ">=3.11"
 dependencies = [
     "flask>=3.1",
     "chromadb>=0.5",
-    "openai>=1.0",
+    "openai>=1.55,<2.0",
     "tiktoken>=0.8",
     "python-dotenv>=1.0",
     "beautifulsoup4>=4.12",
