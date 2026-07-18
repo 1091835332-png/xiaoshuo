@@ -26,7 +26,7 @@ except ImportError:
 from src.config import DEEPSEEK_BASE_URL
 from src.parser import Chapter
 from src.chunker import SmartChunker, SmartBlock
-from src.skeleton import SkeletonAnalyzer, SkeletonResult
+from src.skeleton import SkeletonAnalyzer
 from src.lexicon import Lexicon
 from src.meso import MesoAnalyzer, MesoResult
 from src.aggregator import Aggregator, AggregatedResult
