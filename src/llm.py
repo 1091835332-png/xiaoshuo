@@ -16,7 +16,7 @@ class _Completions:
 
     def create(self, *, model: str, messages: List[Dict[str, str]],
                temperature: float = 0.3, max_tokens: int = 4096):
-        text = self._parent.chat(messages, model=model,
+        text = self._parent._chat_impl(messages, model=model,
                                  temperature=temperature, max_tokens=max_tokens)
         return _FakeResponse(text)
 
@@ -49,9 +49,9 @@ class LLMClient:
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self._client = httpx.Client(timeout=httpx.Timeout(90.0, connect=15.0))
-        self.chat = _Chat(self)
+        self.chat = _Chat(self)  # openai 兼容接口: client.chat.completions.create()
 
-    def chat(self, messages: List[Dict[str, str]], *,
+    def _chat_impl(self, messages: List[Dict[str, str]], *,
              model: str = "deepseek-chat",
              temperature: float = 0.3,
              max_tokens: int = 4096) -> str:
