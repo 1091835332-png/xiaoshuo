@@ -10,7 +10,12 @@
 
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Callable
-from openai import OpenAI
+try:
+    from openai import OpenAI
+    _OPENAI_OK = True
+except ImportError:
+    OpenAI = None
+    _OPENAI_OK = False
 
 from src.chunker import SmartBlock
 from src.lexicon import Lexicon
