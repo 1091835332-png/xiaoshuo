@@ -129,9 +129,10 @@ class ExtractionPipeline:
         yield {"stage": "skeleton_done", "label": "骨架层完成",
                "progress_pct": mid,
                "data": {
-                   "worldview": sk_result.get("worldview", "")[:300],
-                   "timeline": sk_result.get("plot", "")[:300],
-                   "character_count": len(sk_result.get("characters", "")),
+                   "worldview": sk_result.get("worldview", ""),
+                   "plot": sk_result.get("plot", ""),
+                   "characters": sk_result.get("characters", ""),
+                   "mysteries": sk_result.get("mysteries", ""),
                }}
         yield {"stage": "skeleton", "label": "骨架提取完成", "progress_pct": end_pct}
 

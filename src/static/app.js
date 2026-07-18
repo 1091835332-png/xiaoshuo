@@ -172,14 +172,38 @@ function startAnalyzeV2(){
             var stageTag = ev.stage ? '<span class="stage-badge">' + icon + ' ' + ev.stage + '</span>' : '';
             progressLabel.innerHTML = stageTag + ev.label;
 
-            if (ev.data && ev.stage === 'done') {
+            // 骨架层完成 → 渲染4个分析卡片
+            if (ev.data && ev.stage === 'skeleton_done') {
               var d = ev.data;
+              var dims = {worldview:'\ud83c\udf0d 世界观',plot:'\ud83d\udcc5 剧情时间轴',characters:'\ud83d\udc64 人物名录',mysteries:'\ud83d\udd2e 悬念与伏笔'};
+              for (var key in d) {
+                if (d[key] && dims[key] && d[key].length > 20) {
+                  resultContent.innerHTML += '<div class="result-card"><div class="result-card-head">' +
+                    '<span class="result-card-icon">\ud83d\udcdd</span><h2>' + dims[key] + '</h2></div>' +
+                    '<div class="result-card-body">' + md(d[key]) + '</div></div>';
+                }
+              }
+            }
+
+            // 中观层块完成
+            if (ev.data && ev.stage === 'meso_done' && ev.data.lexicon_stats) {
+              var st = ev.data.lexicon_stats;
+              resultContent.innerHTML += '<div class="result-card"><div class="result-card-head">' +
+                '<span class="result-card-icon">\u2699</span><h2>\u4e2d\u89c2\u5c42\u5b8c\u6210</h2></div>' +
+                '<div class="result-card-body"><p>\u8bcd\u5178: ' + (st.total_terms||0) +
+                '\u6761 | \u5df2\u5904\u7406 ' + (st.blocks_processed||0) + '\u5757</p></div></div>';
+            }
+
+            // 最终汇总
+            if (ev.data && ev.stage === 'done') {
+              var dd = ev.data;
               var summary = '';
-              if (d.foreshadow_count !== undefined) summary += '\u2728 ' + d.foreshadow_count + '\u6761\u4f0f\u7b14 | ';
-              if (d.tier_entries !== undefined) summary += '\ud83d\udcca ' + d.tier_entries + '\u7ea7\u6218\u529b\u68af\u961f | ';
-              if (d.character_count !== undefined) summary += '\ud83d\udc64 ' + d.character_count + '\u4eba | ';
-              if (d.validation_gaps && d.validation_gaps.length) {
-                summary += '\u26a0 ' + d.validation_gaps.length + '\u4e2a\u5f85\u6838\u5b9e\u7f3a\u53e3';
+              if (dd.foreshadow_count !== undefined) summary += '\u2728 ' + dd.foreshadow_count + '\u6761\u4f0f\u7b14 | ';
+              if (dd.tier_entries !== undefined) summary += '\ud83d\udcca ' + dd.tier_entries + '\u7ea7\u6218\u529b\u68af\u961f | ';
+              if (dd.character_count !== undefined) summary += '\ud83d\udc64 ' + dd.character_count + '\u4eba | ';
+              if (dd.setting_categories) summary += '\ud83d\udcd6 ' + dd.setting_categories.length + '\u7c7b\u8bbe\u5b9a | ';
+              if (dd.validation_gaps && dd.validation_gaps.length) {
+                summary += '\u26a0 ' + dd.validation_gaps.length + '\u4e2a\u5f85\u6838\u5b9e\u7f3a\u53e3';
               }
               resultContent.innerHTML += '<div class="result-card"><div class="result-card-head">' +
                 '<span class="result-card-icon">\u2705</span><h2>\u5206\u6790\u5b8c\u6210</h2></div>' +
