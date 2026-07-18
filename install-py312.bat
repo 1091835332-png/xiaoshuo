@@ -27,9 +27,10 @@ echo [!] 安装依赖...
 py -3.12 -m pip install flask openai pywebview beautifulsoup4 python-dotenv httpx 2>nul
 
 echo.
+echo.
 echo ==========================================
-echo   [√] 环境就绪！
-echo   启动命令: py -3.12 -m src.desktop
+echo   [OK] Environment ready!
+echo   Run: 双击 启动.bat 或 py -3.12 -m src.desktop
 echo ==========================================
 echo.
 pause
