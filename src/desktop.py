@@ -32,17 +32,28 @@ def main():
     except Exception as e:
         print(f"[!] 原生窗口不可用 ({e})，降级到 --app 模式...")
 
-    # 降级：Chrome --app 模式
-    import subprocess, webbrowser, shutil
+    # 降级：Chrome/Edge --app 模式（无地址栏、无标签、独立窗口）
+    import subprocess, webbrowser, os
     url = "http://127.0.0.1:5000"
-    browser = shutil.which("chrome") or shutil.which("msedge") or shutil.which("edge")
+    browser = None
+    for p in [
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
+    ]:
+        if os.path.exists(p):
+            browser = p
+            break
+
     if browser:
+        print(f"启动独立窗口: {browser}")
         subprocess.Popen([browser, f"--app={url}", "--window-size=1200,820"],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print(f"已启动 {browser} --app 模式")
     else:
+        print("未找到 Chrome/Edge，用默认浏览器...")
         webbrowser.open(url)
-        print("使用默认浏览器")
 
     try:
         while True: time.sleep(1)
