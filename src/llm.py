@@ -59,8 +59,11 @@ class LLMClient:
         last_err = ""
         for attempt in range(2):
             try:
+                url = self.base_url.rstrip("/")
+                if not url.endswith("/v1"):
+                    url += "/v1"
                 resp = self._client.post(
-                    f"{self.base_url}/v1/chat/completions",
+                    f"{url}/chat/completions",
                     headers={
                         "Authorization": f"Bearer {self.api_key}",
                         "Content-Type": "application/json",
