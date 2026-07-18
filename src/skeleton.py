@@ -6,12 +6,7 @@
 from dataclasses import dataclass, field
 from typing import List
 
-try:
-    from openai import OpenAI
-    _OPENAI_OK = True
-except ImportError:
-    OpenAI = None
-    _OPENAI_OK = False
+from typing import List, Dict, Optional
 
 from src.parser import Chapter
 
@@ -150,10 +145,9 @@ class SkeletonAnalyzer:
     """骨架层分析器：轻量全局框架提取"""
 
     def __init__(self, api_key: str | None = None, base_url: str | None = None):
-        if not _OPENAI_OK:
-            raise RuntimeError("openai 未安装，请运行: pip install openai==1.55.0")
         from src.config import DEEPSEEK_API_KEY, DEEPSEEK_BASE_URL
-        self.client = OpenAI(
+        from src.llm import LLMClient
+        self.client = LLMClient(
             api_key=api_key or DEEPSEEK_API_KEY,
             base_url=base_url or DEEPSEEK_BASE_URL,
         )

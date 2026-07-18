@@ -10,12 +10,7 @@
 
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Callable
-try:
-    from openai import OpenAI
-    _OPENAI_OK = True
-except ImportError:
-    OpenAI = None
-    _OPENAI_OK = False
+from typing import List, Dict, Optional, Callable
 
 from src.chunker import SmartBlock
 from src.lexicon import Lexicon
@@ -58,7 +53,7 @@ MESO_SYSTEM = "你是专业的小说分析助手，输出严格按JSON格式。�
 class MesoAnalyzer:
     """每块文本执行4个并行AI任务"""
 
-    def __init__(self, client: OpenAI, lexicon: Lexicon):
+    def __init__(self, client, lexicon: Lexicon):
         self.client = client
         self.lexicon = lexicon
 

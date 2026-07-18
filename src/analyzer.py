@@ -6,12 +6,7 @@ AI 分析模块 — 调用 DeepSeek API 分析小说
 import json
 from typing import List
 
-try:
-    from openai import OpenAI
-    _OPENAI_OK = True
-except ImportError:
-    OpenAI = None
-    _OPENAI_OK = False
+from src.llm import LLMClient
 
 from src.config import DEEPSEEK_API_KEY, DEEPSEEK_BASE_URL, CHUNK_SIZE
 from src.parser import Chapter
@@ -70,9 +65,7 @@ class NovelAnalyzer:
     """小说 AI 分析器"""
 
     def __init__(self, api_key: str | None = None, base_url: str | None = None):
-        if not _OPENAI_OK:
-            raise RuntimeError("openai 未安装，请运行: pip install openai==1.55.0")
-        self.client = OpenAI(
+        self.client = LLMClient(
             api_key=api_key or DEEPSEEK_API_KEY,
             base_url=base_url or DEEPSEEK_BASE_URL,
         )

@@ -16,13 +16,6 @@
 from dataclasses import dataclass
 from typing import List, Dict, Generator, Callable, Optional
 
-try:
-    from openai import OpenAI
-    _OPENAI_OK = True
-except ImportError:
-    OpenAI = None
-    _OPENAI_OK = False
-
 from src.config import DEEPSEEK_BASE_URL
 from src.parser import Chapter
 from src.chunker import SmartChunker, SmartBlock
@@ -43,9 +36,8 @@ class ExtractionPipeline:
     """小说三层递进提取管线"""
 
     def __init__(self, api_key: str, base_url: str = None):
-        if not _OPENAI_OK:
-            raise RuntimeError("openai 未安装，请运行: pip install openai==1.55.0")
-        self.client = OpenAI(
+        from src.llm import LLMClient
+        self.client = LLMClient(
             api_key=api_key,
             base_url=base_url or DEEPSEEK_BASE_URL,
         )
