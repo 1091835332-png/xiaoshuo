@@ -41,14 +41,20 @@
 
       <!-- 维度选择 -->
       <div id="dimensions-panel" style="display:none">
-        <div class="dim-label">分析维度</div>
+        <div class="dim-label">分析粒度</div>
+        <select id="granularity-select" class="granularity-dropdown">
+          <option value="skeleton">⚡ 精简版 — 仅全局框架</option>
+          <option value="standard">📊 标准版 — 框架+主线</option>
+          <option value="detailed" selected>🔬 精细化版 — 全量拆解</option>
+        </select>
+        <div class="dim-label" style="margin-top:12px">分析维度</div>
         <div class="dim-chips">
           <label class="dim-chip"><input type="checkbox" value="worldview" checked><span>🌍 世界观</span></label>
           <label class="dim-chip"><input type="checkbox" value="characters" checked><span>👤 人物转变</span></label>
           <label class="dim-chip"><input type="checkbox" value="plot" checked><span>📈 关键情节</span></label>
           <label class="dim-chip"><input type="checkbox" value="themes" checked><span>💡 主题思想</span></label>
         </div>
-        <button class="btn-analyze" id="analyze-btn" onclick="startAnalyze()">开始分析</button>
+        <button class="btn-analyze" id="analyze-btn" onclick="startAnalyzeV2()">开始分析</button>
       </div>
     </div>
 

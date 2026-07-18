@@ -222,7 +222,35 @@ body {
   background: rgba(239,68,68,0.12);
 }
 
-/* ── 维度选择 ── */
+/* 粒度下拉 */
+.granularity-dropdown {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--sidebar-border);
+  border-radius: var(--radius-sm);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  font-size: 0.82em;
+  cursor: pointer;
+  outline: none;
+  margin-bottom: 4px;
+}
+
+.granularity-dropdown:focus {
+  border-color: var(--accent);
+}
+
+/* 阶段进度标签 */
+.stage-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.74em;
+  font-weight: 600;
+  background: var(--accent-light);
+  color: var(--accent-hover);
+  margin-right: 6px;
+}
 .dim-label {
   font-size: 0.74em;
   font-weight: 600;

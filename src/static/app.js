@@ -133,6 +133,71 @@ function startAnalyze(){
   });
 }
 
+// ── V2 三层递进分析法 ──
+function startAnalyzeV2(){
+  var granularity = $('granularity-select').value;
+  var btn = $('analyze-btn'); btn.disabled = true;
+  resultSec.style.display = 'block';
+  $('main-empty').style.display = 'none';
+  resultContent.innerHTML = '';
+  progressArea.style.display = 'block';
+  progressBar.style.width = '0%';
+  progressLabel.textContent = '\u6b63\u5728\u51c6\u5907\u2026';
+
+  var stageIcons = {chunking:'\ud83d\udce6',skeleton:'\ud83c\udfd7',meso:'\u2699',
+    meso_task:'\u27a1',aggregation:'\ud83d\udd17',done:'\u2705'};
+
+  fetch('/analyze-stream-v2', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({granularity: granularity})
+  }).then(function(resp){
+    if (!resp.ok) return resp.json().then(function(e){ throw new Error(e.error); });
+    var reader = resp.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
+
+    function pump(){
+      return reader.read().then(function(_a){
+        var done = _a.done, value = _a.value;
+        if (done) { btn.disabled = false; return; }
+        buffer += decoder.decode(value, {stream: true});
+        var lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        lines.forEach(function(line){
+          if (line.indexOf('data: ') === 0) {
+            var ev = JSON.parse(line.slice(6));
+            progressBar.style.width = (ev.progress_pct * 100) + '%';
+            var icon = stageIcons[ev.stage] || '\u25cf';
+            var stageTag = ev.stage ? '<span class="stage-badge">' + icon + ' ' + ev.stage + '</span>' : '';
+            progressLabel.innerHTML = stageTag + ev.label;
+
+            if (ev.data && ev.stage === 'done') {
+              var d = ev.data;
+              var summary = '';
+              if (d.foreshadow_count !== undefined) summary += '\u2728 ' + d.foreshadow_count + '\u6761\u4f0f\u7b14 | ';
+              if (d.tier_entries !== undefined) summary += '\ud83d\udcca ' + d.tier_entries + '\u7ea7\u6218\u529b\u68af\u961f | ';
+              if (d.character_count !== undefined) summary += '\ud83d\udc64 ' + d.character_count + '\u4eba | ';
+              if (d.validation_gaps && d.validation_gaps.length) {
+                summary += '\u26a0 ' + d.validation_gaps.length + '\u4e2a\u5f85\u6838\u5b9e\u7f3a\u53e3';
+              }
+              resultContent.innerHTML += '<div class="result-card"><div class="result-card-head">' +
+                '<span class="result-card-icon">\u2705</span><h2>\u5206\u6790\u5b8c\u6210</h2></div>' +
+                '<div class="result-card-body"><p>' + summary + '</p></div></div>';
+            }
+          }
+        });
+        return pump();
+      });
+    }
+    return pump();
+  }).catch(function(err){
+    progressArea.style.display = 'none';
+    resultContent.innerHTML = '<div class="error-banner">\u5206\u6790\u5931\u8d25: ' + err.message + '</div>';
+    btn.disabled = false;
+  });
+}
+
 // ── Markdown ──
 function md(text){
   if (!text) return '';

@@ -14,6 +14,7 @@ from flask import Flask, render_template, request, jsonify, session, Response
 from src.config import UPLOAD_DIR, OUTPUT_DIR, DEEPSEEK_BASE_URL
 from src.parser import parse
 from src.analyzer import NovelAnalyzer
+from src.engine import ExtractionPipeline, GRANULARITY_LABELS
 
 # PyInstaller 打包后资源路径：_MEIPASS 是解压临时目录
 if getattr(sys, "frozen", False):
@@ -170,6 +171,39 @@ def analyze_stream():
                 "total": total,
             }, ensure_ascii=False)
             yield f"data: {event}\n\n"
+
+    return Response(generate(), mimetype="text/event-stream")
+
+
+@app.route("/api/granularities")
+def granularities():
+    return jsonify(GRANULARITY_LABELS)
+
+
+@app.route("/analyze-stream-v2", methods=["POST"])
+def analyze_stream_v2():
+    """SSE 流式分析 v2：三层递进提取管线"""
+    saved_name = session.get("saved_file")
+    if not saved_name:
+        return jsonify({"error": "请先上传文件"}), 400
+
+    saved_path = UPLOAD_DIR_PATH / saved_name
+    if not saved_path.exists():
+        return jsonify({"error": "文件已过期，请重新上传"}), 400
+
+    api_key = session.get("ds_api_key")
+    if not api_key:
+        return jsonify({"error": "请先设置 DeepSeek API Key"}), 400
+
+    data = request.get_json(silent=True) or {}
+    granularity = data.get("granularity", "detailed")
+
+    chapters = parse(str(saved_path))
+    pipeline = ExtractionPipeline(api_key=api_key)
+
+    def generate() -> Generator[str, None, None]:
+        for ev in pipeline.run(chapters, granularity=granularity):
+            yield f"data: {_json.dumps(ev, ensure_ascii=False)}\n\n"
 
     return Response(generate(), mimetype="text/event-stream")
 
