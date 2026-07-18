@@ -89,14 +89,42 @@ def upload():
     })
 
 
+_ENV_PATH = _ROOT / ".env"
+
+def _read_env_key() -> str:
+    """从 .env 文件读取 API Key"""
+    if _ENV_PATH.exists():
+        for line in _ENV_PATH.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line.startswith("DEEPSEEK_API_KEY="):
+                return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return ""
+
+def _write_env_key(api_key: str):
+    """写入 API Key 到 .env 文件"""
+    lines = []
+    found = False
+    if _ENV_PATH.exists():
+        for line in _ENV_PATH.read_text(encoding="utf-8").splitlines():
+            if line.strip().startswith("DEEPSEEK_API_KEY="):
+                lines.append(f'DEEPSEEK_API_KEY={api_key}')
+                found = True
+            else:
+                lines.append(line)
+    if not found:
+        lines.append(f'DEEPSEEK_API_KEY={api_key}')
+    _ENV_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 @app.route("/api/set-key", methods=["POST"])
 def set_key():
-    """设置 DeepSeek API Key"""
+    """设置 DeepSeek API Key — 持久化到 .env 文件"""
     data = request.get_json(silent=True) or {}
     api_key = (data.get("api_key") or "").strip()
     if api_key:
+        _write_env_key(api_key)
         session["ds_api_key"] = api_key
-        return jsonify({"success": True, "has_key": True})
+        return jsonify({"success": True, "has_key": True, "persisted": True})
     else:
         session.pop("ds_api_key", None)
         return jsonify({"success": True, "has_key": False})
@@ -104,8 +132,12 @@ def set_key():
 
 @app.route("/api/has-key")
 def has_key():
-    """检查是否已设置 API Key"""
-    return jsonify({"has_key": bool(session.get("ds_api_key"))})
+    """检查是否已设置 API Key — 优先 .env，其次 session"""
+    env_key = _read_env_key()
+    if env_key:
+        session["ds_api_key"] = env_key  # 同步到 session
+        return jsonify({"has_key": True, "source": "env"})
+    return jsonify({"has_key": bool(session.get("ds_api_key")), "source": "session"})
 
 
 @app.route("/analyze", methods=["POST"])
@@ -124,7 +156,7 @@ def analyze():
 
     try:
         chapters = parse(str(saved_path))
-        api_key = session.get("ds_api_key")
+        api_key = session.get("ds_api_key") or _read_env_key()
         if not api_key:
             return jsonify({"error": "请先设置 DeepSeek API Key（点击页面右上角齿轮图标）"}), 400
         analyzer = NovelAnalyzer(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
@@ -151,7 +183,7 @@ def analyze_stream():
     if not saved_path.exists():
         return jsonify({"error": "文件已过期，请重新上传"}), 400
 
-    api_key = session.get("ds_api_key")
+    api_key = session.get("ds_api_key") or _read_env_key()
     if not api_key:
         return jsonify({"error": "请先设置 DeepSeek API Key"}), 400
 
@@ -191,7 +223,7 @@ def analyze_stream_v2():
     if not saved_path.exists():
         return jsonify({"error": "文件已过期，请重新上传"}), 400
 
-    api_key = session.get("ds_api_key")
+    api_key = session.get("ds_api_key") or _read_env_key()
     if not api_key:
         return jsonify({"error": "请先设置 DeepSeek API Key"}), 400
 
