@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install flask openai pywebview beautifulsoup4 python-dotenv pyinstaller
+          pip install flask pywebview beautifulsoup4 python-dotenv httpx pyinstaller
 
       - name: Build with PyInstaller
         run: |
